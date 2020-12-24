@@ -1,0 +1,73 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 100;
+
+int n, m;
+int id = 0, d[SIZE] = { 0, };
+bool fin[SIZE] = { false, };
+int sccnum = 0, sccn[SIZE];
+int indegree[SIZE] = { 0, };
+vector<vector<int>> SCC;
+vector<int> v[SIZE];
+stack<int> s;
+
+int scc(int now) {
+	d[now] = ++id;
+	s.push(now);
+	int parent = d[now];
+
+	for (int next : v[now]) {
+		if (!d[next])
+			parent = min(parent, scc(next));
+		else if (!fin[next])
+			parent = min(parent, d[next]);
+	}
+
+	if (parent == d[now]) {
+		vector<int> res;
+		sccnum++;
+		while (1) {
+			int x = s.top();
+			s.pop();
+
+			res.push_back(x);
+			fin[x] = true;
+			sccn[x] = sccnum;
+
+			if (x == now) break;
+		}
+		SCC.push_back(res);
+	}
+
+	return parent;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	cin >> n >> m;
+	while (m--) {
+		int a, b; cin >> a >> b;
+		v[a].push_back(b);
+	}
+
+
+	for (int i = 1; i <= n; i++) {
+		if (!fin[i]) scc(i);
+	}
+
+	for (int i = 1; i <= n; i++) {
+		for (int j : v[i]) {
+			if (sccn[i] != sccn[j])
+				indegree[sccn[j]]++;
+		}
+	}
+
+	for (int i = 1; i <= n; i++) cout << i << "\t"; cout << endl;
+	for (int i = 1; i <= n; i++) cout << sccn[i] << "\t"; cout << endl;
+	for (int i = 1; i <= n; i++) cout << indegree[sccn[i]] << "\t"; cout << endl;
+	return 0;
+}
