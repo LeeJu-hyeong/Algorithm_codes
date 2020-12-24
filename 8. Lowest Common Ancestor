@@ -1,0 +1,64 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 100001;
+
+int N, dp[SIZE][20], depth[SIZE];
+bool vis[SIZE] = { false, };
+vector<int> v[SIZE];
+
+void dfs(int now, int dep) {
+	vis[now] = true;
+	depth[now] = dep;
+	for (int next : v[now]) {
+		if (!vis[next]) {
+			dp[next][0] = now;
+			dfs(next, dep + 1);
+		}
+	}
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	cin >> N;
+	for (int i = 1; i < N; i++) {
+		int a, b; cin >> a >> b;
+		v[a].push_back(b);
+		v[b].push_back(a);
+	}
+
+	dfs(1, 0);
+
+	for (int i = 0; i < 19; i++) {
+		for (int j = 1; j <= N; j++)
+			dp[j][i + 1] = dp[dp[j][i]][i];
+	}
+
+	int M; cin >> M;
+	while (M--) {
+		int x, y; cin >> x >> y;
+		if (depth[x] < depth[y]) swap(x, y);
+
+		for (int i = 19; i >= 0; i--) {
+			if (depth[x] - depth[y] >= (1 << i))
+				x = dp[x][i];
+		}
+
+		if (x != y) {
+			for (int i = 19; i >= 0; i--) {
+				if (dp[x][i] != dp[y][i]) {
+					x = dp[x][i];
+					y = dp[y][i];
+				}
+			}
+			x = dp[x][0];
+		}
+
+		cout << x << endl;
+	}
+
+	return 0;
+}
