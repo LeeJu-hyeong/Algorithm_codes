@@ -1,0 +1,47 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	int N; cin >> N;
+	int A[100]; for (int i = 0; i < N; i++) cin >> A[i];
+
+	vector<int> v;
+	int trace[100];
+	for (int i = 0; i < N; i++) {
+		if (v.empty()) {
+			v.push_back(A[i]);
+			trace[i] = v.size();
+		}
+		else {
+			int idx = lower_bound(v.begin(), v.end(), A[i]) - v.begin();
+			if (v.back() < A[i]) {
+				v.push_back(A[i]);
+				trace[i] = v.size();
+			}
+			else {
+				v[idx] = A[i];
+				trace[i] = idx + 1;
+			}
+		}
+	}
+
+	int ans = v.size(); 
+	cout << ans << endl;
+
+	vector<int> res;
+	for (int i = N - 1; i >= 0; i--) {
+		if (trace[i] == ans) {
+			res.push_back(A[i]);
+			ans--;
+		}
+	}
+	for (int i = res.size() - 1; i >= 0; i--)
+		cout << res[i] << " ";
+
+	return 0;
+}
