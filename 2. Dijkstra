@@ -1,0 +1,64 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 100;
+const int INF = 987654321;
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	int n, m; cin >> n >> m;
+	vector<pair<int, int>> v[SIZE];
+	while (m--) {
+		int a, b, c; cin >> a >> b >> c;
+		v[a].push_back({ b, c });
+	}
+	int s, e, k; cin >> s >> e >> k;
+
+	int dis[SIZE]; fill(dis, dis + n + 1, INF); dis[s] = 0;
+	int trace[SIZE];
+	priority_queue<int> kth[SIZE];
+
+
+	priority_queue<pair<int, int>> pq;
+	pq.push({ 0, s });
+	while (!pq.empty()) {
+		int now = pq.top().second;
+		int d = -pq.top().first;
+		pq.pop();
+
+		for (auto nxt : v[now]) {
+			int next = nxt.first;
+			int nextDis = nxt.second;
+
+			if (dis[next] > dis[now] + nextDis) {
+				dis[next] = dis[now] + nextDis;
+				trace[next] = now;
+			}
+
+			if (kth[next].size() < k) {
+				kth[next].push(d + nextDis);
+				pq.push({ -(d + nextDis), next });
+			}
+			else if (kth[next].top() > d + nextDis) {
+				kth[next].pop();
+				kth[next].push(d + nextDis);
+				pq.push({ -(d + nextDis), next });
+			}
+		}
+	}
+
+	while (!kth[e].empty()) {
+		cout << kth[e].top() << " ";
+		kth[e].pop();
+	}
+	cout << endl;
+	for (int i = e; ; i = trace[i]) {
+		cout << i << " ";
+		if (i == s) break;
+	}
+  
+	return 0;
+}
