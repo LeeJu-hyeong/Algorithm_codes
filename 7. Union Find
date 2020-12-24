@@ -1,0 +1,44 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+
+int par[1000];
+
+int getPar(int n) {
+	if (par[n] == n) return n;
+	return par[n] = getPar(par[n]);
+}
+
+void joint(int a, int b) {
+	a = getPar(a);
+	b = getPar(b);
+
+	if (a < b) par[b] = a;
+	else par[a] = b;
+}
+
+bool checkPar(int a, int b) {
+	if (getPar(a) == getPar(b)) return true;
+	return false;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	int n, m; cin >> n >> m;
+	for (int i = 1; i <= n; i++) par[i] = i;
+
+	while (m--) {
+		int M, a, b; cin >> M >> a >> b;
+		if (M == 0) joint(a, b);
+		else {
+			if (checkPar(a, b)) cout << "YES\n";
+			else cout << "NO\n";
+		}
+	}
+
+
+	return 0;
+}
