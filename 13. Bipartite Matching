@@ -1,0 +1,57 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 1001;
+
+vector<int> v[SIZE];
+int bm[SIZE] = { 0, };
+bool vis[SIZE];
+int N, M, K;
+
+bool dfs(int n) {
+	if (vis[n]) return false;
+	vis[n] = true;
+
+	for (int next : v[n]) {
+		if (!bm[next] || dfs(bm[next])) {
+			bm[next] = n;
+			return true;
+		}
+	}
+	return false;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false); // BOJ 11378
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	cin >> N >> M >> K;
+	for (int i = 1; i <= N; i++) {
+		int t; cin >> t;
+		while (t--) {
+			int x; cin >> x;
+			v[i].push_back(x);
+		}
+	}
+
+	int res = 0;
+	for (int i = 1; i <= N; i++) {
+		memset(vis, false, sizeof(vis));
+		if (dfs(i)) res++;
+	}
+	
+	while (1) {
+		bool flag = false;
+		for (int i = 1; i <= N && K; i++) {
+			memset(vis, false, sizeof(vis));
+			if (dfs(i)) {
+				res++; K--; flag = true;
+			}
+		}
+		if (!flag || !K) break;
+	}
+
+	cout << res;
+	return 0;
+}
