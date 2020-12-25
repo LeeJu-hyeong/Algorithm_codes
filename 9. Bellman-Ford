@@ -1,0 +1,45 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+
+const int INF = 987654321;
+const int SIZE = 501;
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	int N, M; cin >> N >> M;
+	vector<pair<int, int>> v[SIZE];
+	while (M--) {
+		int a, b, c; cin >> a >> b >> c;
+		v[a].push_back({ b, c });
+	}
+  
+	int dis[SIZE]; fill(dis, dis + N + 1, INF);
+	dis[1] = 0;
+
+	bool flag = true;
+	for (int i = 0; i < N; i++) {
+		for (int j = 1; j <= N; j++) {
+			for (auto next : v[j]) {
+				int np = next.first;
+				int nd = next.second;
+				if (dis[np] > dis[j] + nd) {
+					if (i == N - 1) flag = false;
+					dis[np] = dis[j] + nd;
+				}
+			}
+		}
+	}
+
+	if (!flag) cout << "-1";
+	else {
+		for (int i = 2; i <= N; i++) {
+			(dis[i] == INF) ? cout << "-1\n" : cout << dis[i] << "\n";
+		}
+	}
+
+	return 0;
+}
