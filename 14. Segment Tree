@@ -1,0 +1,63 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 100;
+
+int n, m, k;
+int tree[SIZE * 4];
+int arr[SIZE];
+
+int maketree(int left, int right, int idx) {
+	if (left == right) return tree[idx] = arr[left];
+
+	int mid = (left + right) / 2;	
+	return tree[idx] = maketree(left, mid, idx * 2) * maketree(mid + 1, right, idx * 2 + 1);
+}
+
+int sum(int left, int right, int start, int end, int idx) {
+	if (right < start || end < left) return 1;
+	if (start <= left && right <= end) return tree[idx];
+
+	int mid = (left + right) / 2;
+	return sum(left, mid, start, end, idx * 2) * sum(mid + 1, right, start, end, idx * 2 + 1);
+}
+
+void update(int left, int right, int dif, int node, int idx, int k) {
+	if (left <= node && node <= right)
+		if (k) tree[idx] = tree[idx] / k * dif;
+	if (left == right) return;
+
+	int mid = (left + right) / 2;
+	update(left, mid, dif, node, idx * 2, k);
+	update(mid + 1, right, dif, node, idx * 2 + 1, k);
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	cin >> n >> m >> k;
+	for (int i = 0; i < n; i++) cin >> arr[i];
+
+	// Input index is started from 0.
+	// Tree index is started from 1.
+
+	maketree(0, n - 1, 1);
+
+	for (int i = 0; i < m + k; i++) {
+		int a, b, c; cin >> a >> b >> c;
+		if (a == 1) {
+			int k = arr[b - 1];
+			arr[b - 1] = c;
+
+			if(k != 0) update(0, n - 1, c, b - 1, 1, k);
+			else maketree(0, n - 1, 1);
+		}
+		else {
+			cout << sum(0, n - 1, b - 1, c - 1, 1) << endl;
+		}
+	}
+
+	return 0;
+}
