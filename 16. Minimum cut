@@ -1,0 +1,102 @@
+#define _CRT_SECURE_NO_WARNINGS // BOJ 1420
+#include <bits/stdc++.h>
+using namespace std;
+const int INF = 987654321;
+const int SIZE = 20020;
+
+int dx[] = { 1, -1, 0, 0 }, dy[] = { 0, 0, 1, -1 };
+
+int N, M, K, H;
+char arr[101][101];
+vector<int> v[SIZE];
+map<pair<int, int>, int> mf, f;
+
+inline int convert(int x, int y) { return (x + 1) + (y * M); }
+void connect(int x, int y, int flow) {
+	v[x].push_back(y);
+	v[y].push_back(x);
+
+	mf.insert(pair<pair<int, int>, int>({ x, y }, flow));
+	mf.insert(pair<pair<int, int>, int>({ y, x }, 0));
+
+	f.insert(pair<pair<int, int>, int>({ x, y }, 0));
+	f.insert(pair<pair<int, int>, int>({ y, x }, 0));
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	cin >> N >> M;
+
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			cin >> arr[i][j];
+
+			if (arr[i][j] == 'K') K = convert(j, i);
+			else if (arr[i][j] == 'H') H = convert(j, i);
+		}
+	}
+
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < M; j++) {
+			int now = convert(j, i);
+
+			connect(now, now + 10000, 1);
+
+			for (int k = 0; k < 4; k++) {
+				int x = j + dx[k];
+				int y = i + dy[k];
+
+				if (x < 0 || y < 0 || x >= M || y >= N || arr[y][x] == '#') continue;
+
+				int next = convert(x, y);
+				connect(now + 10000, next, INF);
+			}
+		}
+	}
+
+	for (int next : v[K]) {
+		if (next == H + 10000) {
+			cout << -1; return 0;
+		}
+	}
+
+	int res = 0;
+  
+	while (1) {
+		int d[SIZE]; memset(d, -1, sizeof(d));
+		queue<int> q; q.push(K + 10000);
+
+		while (!q.empty()) {
+			int now = q.front(); q.pop();
+
+			for (int next : v[now]) {
+				if (d[next] == -1 && mf[{now, next}] - f[{now, next}] > 0) {
+					d[next] = now;
+					q.push(next);
+				}
+			}
+
+			if (now == H) break;
+		}
+		if (d[H] == -1) break;
+
+		int Flow = INF;
+
+		for (int i = H; i != (K + 10000); i = d[i])
+			Flow = min(Flow, mf[{d[i], i}] - f[{d[i], i}]);
+
+		for (int i = H; i != (K + 10000); i = d[i]) {
+			f[{d[i], i}] += Flow;
+			f[{i, d[i]}] -= Flow;
+		}
+
+		res += Flow;
+	}
+
+	cout << res;
+  
+	return 0;
+}
