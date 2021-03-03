@@ -1,0 +1,78 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 75001;
+typedef pair<int, int> p;
+typedef long long ll;
+// BOJ 5419
+
+int t, n;
+vector<p> coor;
+
+ll tree[SIZE * 4];
+
+void update(int l, int r, int idx, ll diff, int node) {
+	if (idx < l || r < idx) return;
+	if (l <= idx && idx <= r) tree[node] += diff;
+	if (l == r) return;
+
+	int mid = (l + r) / 2;
+	update(l, mid, idx, diff, node * 2);
+	update(mid + 1, r, idx, diff, node * 2 + 1);
+}
+
+ll getsum(int l, int r, int x, int y, int node) {
+	if (r < x || y < l) return 0;
+	if (x <= l && r <= y) return tree[node];
+	if (l == r) return 0;
+
+	int mid = (l + r) / 2;
+	return getsum(l, mid, x, y, node * 2) + getsum(mid + 1, r, x, y, node * 2 + 1);
+}
+
+bool cmp(p a, p b) {
+	if (a.first == b.first) return a.second > b.second;
+	return a.first < b.first;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	//freopen("input.txt", "r", stdin);
+
+	cin >> t;
+	while (t--) {
+		cin >> n;
+		coor.clear();
+		vector<int> idx;
+		for (int i = 0; i < n; i++) {
+			int x, y; cin >> x >> y;
+			coor.push_back({ x, y });
+			idx.push_back(y);
+		}
+		sort(coor.begin(), coor.end(), cmp);
+		memset(tree, 0, sizeof(tree));
+    
+    // Coordinate Compression
+    // Sorting and Erase Overlapped Elements
+		sort(idx.begin(), idx.end());
+		idx.erase(unique(idx.begin(), idx.end()), idx.end());
+
+		int N = idx.size();
+		
+		ll answer = 0;
+		for (auto i : coor) {
+			int x = i.first;
+			int y = i.second;
+      // Get Index Using lower_bound
+			int k = lower_bound(idx.begin(), idx.end(), y) - idx.begin();
+
+			answer += getsum(0, N - 1, k, N - 1, 1);
+			update(0, N - 1, k, 1, 1);
+		}
+
+		cout << answer << "\n";
+	}
+
+	return 0;
+}
