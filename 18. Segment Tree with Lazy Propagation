@@ -1,0 +1,91 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int SIZE = 100001;
+// BOJ 16975
+
+int n;
+ll arr[SIZE], tree[SIZE * 4], lazy[SIZE * 4];
+
+ll init(int s, int e, int node) {
+	if (s == e) return tree[node] = arr[s];
+
+	int mid = (s + e) / 2;
+	return tree[node] = init(s, mid, node * 2) + init(mid + 1, e, node * 2 + 1);
+}
+
+void propagation(int s, int e, int node) {
+	if (lazy[node] != 0) {
+		tree[node] += (e - s + 1) * lazy[node];
+		if (s != e) {
+			lazy[node * 2] += lazy[node];
+			lazy[node * 2 + 1] += lazy[node];
+		}
+
+		lazy[node] = 0;
+	}
+}
+
+ll get(int s, int e, int x, int y, int node) {
+	propagation(s, e, node);
+
+	if (e < x || y < s) return 0;
+	if (x <= s && e <= y) return tree[node];
+
+	int mid = (s + e) / 2;
+	return get(s, mid, x, y, node * 2) + get(mid + 1, e, x, y, node * 2 + 1);
+}
+
+void update(int s, int e, int x, int y, ll val, int node) {
+	propagation(s, e, node);
+
+	if (e < x || y < s) return;
+	if (x <= s && e <= y) {
+		tree[node] += (e - s + 1) * val;
+		if (s != e) {
+			lazy[node * 2] += val;
+			lazy[node * 2 + 1] += val;
+		}
+		return;
+	}
+
+	if (s == e) return;
+
+	int mid = (s + e) / 2;
+	update(s, mid, x, y, val, node * 2);
+	update(mid + 1, e, x, y, val, node * 2 + 1);
+
+	tree[node] = tree[node * 2] + tree[node * 2 + 1];
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	cin >> n;
+	for (int i = 1; i <= n; i++) cin >> arr[i];
+
+	memset(tree, 0, sizeof(tree));
+	memset(lazy, 0, sizeof(lazy));
+
+	init(1, n, 1);
+
+	int m; cin >> m;
+	while (m--) {
+		int mode; cin >> mode;
+		if (mode == 1) {
+			int i, j; ll k; cin >> i >> j >> k;
+
+			update(1, n, i, j, k, 1);
+		}
+		else {
+			int x; cin >> x;
+
+			cout << get(1, n, x, x, 1) << "\n";
+		}
+	}
+
+	return 0;
+}
