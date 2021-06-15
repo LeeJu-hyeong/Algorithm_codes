@@ -1,0 +1,122 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int SIZE = 1e6 + 5;
+
+int k, n;
+
+int fan[SIZE];
+
+ll arr[SIZE];
+ll tree[SIZE * 4];
+
+int par_down[SIZE];
+int par_up[SIZE];
+
+int getPar(int* par, int n) {
+	if (par[n] == n) return n;
+	return par[n] = getPar(par, par[n]);
+}
+
+void merge_down(int x, int y) {
+	x = getPar(par_down, x), y = getPar(par_down, y);
+
+	if (x < y) par_down[y] = x;
+	else par_down[x] = y;
+}
+
+void merge_up(int x, int y) {
+	x = getPar(par_up, x), y = getPar(par_up, y);
+	
+	if (x > y) par_up[y] = x;
+	else par_up[x] = y;
+}
+
+ll init(int l, int r, int node) {
+	if (l == r) return tree[node] = arr[l];
+
+	int mid = (l + r) >> 1;
+	return tree[node] = init(l, mid, node * 2) + init(mid + 1, r, node * 2 + 1);
+}
+
+void update(int l, int r, int idx, int node) {
+	if (r < idx || idx < l) return;
+	if (l <= idx && idx <= r) tree[node]--;
+
+	if (l == r) return;
+
+	int mid = (l + r) >> 1;
+	update(l, mid, idx, node * 2);
+	update(mid + 1, r, idx, node * 2 + 1);
+}
+
+ll get_sum(int l, int r, int x, int y, int node) {
+	if (r < x || y < l) return 0;
+	if (x <= l && r <= y) return tree[node];
+
+	int mid = (l + r) >> 1;
+	return get_sum(l, mid, x, y, node * 2) + get_sum(mid + 1, r, x, y, node * 2 + 1);
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	//freopen("input.txt", "r", stdin);
+
+	cin >> k >> n;
+	for (int i = 1; i <= n; i++) {
+		cin >> fan[i];
+
+		arr[i] = 1;
+		par_down[i] = par_up[i] = i;
+	}
+	memset(tree, 0, sizeof(tree));
+	init(1, n, 1);
+
+	for (int i = 2; i <= n; i++) {
+		if (fan[i - 1] == fan[i]) merge_down(i - 1, i);
+
+		int idx = n - i + 1;
+		if (fan[idx] == fan[idx + 1]) merge_up(idx, idx + 1);
+	}
+
+	ll cnt = 0;
+
+	int l_idx[SIZE];
+	int r_idx[SIZE];
+	for (int i = 1; i <= n; i++) {
+		l_idx[i] = i - 1;
+		r_idx[i] = i + 1;
+	}
+	l_idx[1] = 1, r_idx[n] = n;
+
+	int q; cin >> q;
+	while (q--) {
+		int a, b; cin >> a >> b;
+
+		if (a == 2) {
+			int l = getPar(par_down, b);
+			int r = getPar(par_up, b);
+
+			cnt += get_sum(1, n, l, r, 1);
+		}
+		else {
+			r_idx[l_idx[b]] = r_idx[b];
+			l_idx[r_idx[b]] = l_idx[b];
+			update(1, n, b, 1);
+
+			if(l_idx[b] == b) l_idx[r_idx[b]] = r_idx[b];
+			if (r_idx[b] == b) r_idx[l_idx[b]] = l_idx[b];
+
+			if (fan[l_idx[b]] == fan[r_idx[b]]) {
+				merge_down(l_idx[b], r_idx[b]);
+				merge_up(l_idx[b], r_idx[b]);
+			}
+		}
+	}
+
+	cout << cnt;
+
+	return 0;
+}
