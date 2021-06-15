@@ -1,0 +1,102 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 1e4 + 5;
+
+vector<int> v[20005];
+
+int convert(int x) {
+	if (x > 0) return x + 10000;
+	return -x;
+}
+int to_idx(int x) {
+	if (x > 0) return x;
+	return -x + 10000;
+}
+int to_origin(int x) {
+	if (x <= 10000) return x;
+	return x - 10000;
+}
+
+stack<int> s;
+int par[20005], id = 0;
+bool fin[20005];
+
+int scc_num[20005];
+int sccN = 1;
+
+int dfs(int now) {
+	par[now] = ++id;
+	s.push(now);
+
+	int parent = par[now];
+	for (int next : v[now]) {
+		if (!par[next]) parent = min(parent, dfs(next));
+		else if (!fin[next]) parent = min(parent, par[next]);
+	}
+
+	if (parent == par[now]) {
+		while (1) {
+			int x = s.top();
+			s.pop();
+
+			fin[x] = true;
+			scc_num[x] = sccN;
+
+			if (x == now) break;
+		}
+		sccN++;
+	}
+
+	return parent;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	int n, m; cin >> n >> m;
+	for (int i = 0; i < m; i++) {
+		int xi, xj; cin >> xi >> xj;
+
+		v[convert(xi)].push_back(to_idx(xj));
+		v[convert(xj)].push_back(to_idx(xi));
+	}
+	memset(fin, false, sizeof(fin));
+	memset(par, 0, sizeof(par));
+
+	for (int i = 1; i <= n; i++) {
+		if(!par[i]) dfs(i);
+		if(!par[i + 10000]) dfs(i + 10000);
+	}
+
+	for (int i = 1; i <= n; i++) {
+		if (scc_num[i] == scc_num[i + 10000]) {
+			cout << "0\n";
+			return 0;
+		}
+	}
+	cout << "1\n";
+
+	vector<pair<int, int>> ts;
+	for (int i = 1; i <= n; i++) {
+		ts.push_back({ scc_num[i], i });
+		ts.push_back({ scc_num[i + 10000], i + 10000 });
+	}
+	sort(ts.begin(), ts.end(), greater<pair<int, int>>());
+
+	int ans[10001]; memset(ans, -1, sizeof(ans));
+	for (auto _ : ts) {
+		int now = _.second;
+
+		if (ans[to_origin(now)] == -1) {
+			if (now <= 10000) ans[to_origin(now)] = 0;
+			else ans[to_origin(now)] = 1;
+		}
+	}
+
+	for (int i = 1; i <= n; i++) cout << ans[i] << " ";
+
+	return 0;
+}
