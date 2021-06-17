@@ -1,0 +1,101 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+#define NOT(x) (x + 100000)
+using namespace std;
+const int SIZE = 200200;
+
+int n, m;
+vector<int> v[SIZE];
+
+stack<int> s;
+int par[SIZE], id = 0;
+bool fin[SIZE];
+
+int scc_num[SIZE];
+int sccN = 1;
+
+// make SCC.
+int dfs(int now) {
+	par[now] = ++id;
+	s.push(now);
+
+	int parent = par[now];
+	for (int next : v[now]) {
+		if (!par[next]) parent = min(parent, dfs(next));
+		else if (!fin[next]) parent = min(parent, par[next]);
+	}
+
+	if (parent == par[now]) {
+		while (1) {
+			int x = s.top();
+			s.pop();
+
+			fin[x] = true;
+			scc_num[x] = sccN;
+
+			if (x == now) break;
+		}
+		sccN++;
+	}
+
+	return parent;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	//freopen("input.txt", "r", stdin);
+
+	vector<int> Switch[SIZE / 2];
+	int state[SIZE / 2];
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++) cin >> state[i];
+
+	for (int i = 1; i <= m; i++) {
+		int k; cin >> k;
+		while (k--) {
+			int x; cin >> x;
+			Switch[x].push_back(i);
+		}
+	}
+
+	for (int i = 1; i <= n; i++) {
+		int x1 = Switch[i][0];
+		int x2 = Switch[i][1];
+
+		if (state[i]) {
+			// not x1 or x2 <==> x1 -> x2 <==> not x2 => not x1
+			v[x1].push_back(x2);
+			v[NOT(x2)].push_back(NOT(x1));
+
+			// x1 or not x2 <==> not x1 -> not x2 <==> x2 => x1
+			v[NOT(x1)].push_back(NOT(x2));
+			v[x2].push_back(x1);
+		}
+		else {
+			// x1 or x2 <==> not x1 -> x2 <==> not x2 => x1
+			v[NOT(x1)].push_back(x2);
+			v[NOT(x2)].push_back(x1);
+
+			// not x1 or not x2 <==> x1 -> not x2 <==> x2 => not x1
+			v[x1].push_back(NOT(x2));
+			v[x2].push_back(NOT(x1));
+		}
+	}
+
+	for (int i = 1; i <= m; i++) {
+		if (!par[i]) dfs(i);
+		if (!par[NOT(i)]) dfs(NOT(i));
+	}
+
+	// can't contain x and not x in same SCC.
+	for (int i = 1; i <= m; i++) {
+		if (scc_num[i] == scc_num[NOT(i)]) {
+			cout << "0\n";
+			return 0;
+		}
+	}
+	cout << "1\n";
+
+	return 0;
+}
