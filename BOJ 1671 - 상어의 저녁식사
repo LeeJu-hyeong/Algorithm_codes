@@ -1,0 +1,67 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 51;
+
+vector<int> v[SIZE];
+
+int d[SIZE];
+bool vis[SIZE];
+
+// bipartite matching
+bool dfs(int now) {
+	if (vis[now]) return false;
+	vis[now] = true;
+
+	for (int next : v[now]) {
+		if (d[next] == -1 || dfs(d[next])) {
+			d[next] = now;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	freopen("input.txt", "r", stdin);
+
+	// input
+	int n, stat[SIZE][3]; cin >> n;
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < 3; j++) cin >> stat[i][j];
+
+	// connecting vertex according to stat
+	for (int i = 0; i < n; i++) {
+		for (int j = i + 1; j < n; j++) {
+			int check = 0;
+
+			if(stat[i][0] == stat[j][0] && stat[i][1] == stat[j][1] && stat[i][2] == stat[j][2])
+				v[i].push_back(j);
+
+			else if (stat[i][0] >= stat[j][0] && stat[i][1] >= stat[j][1] && stat[i][2] >= stat[j][2])
+				v[i].push_back(j);
+
+			else if (stat[i][0] <= stat[j][0] && stat[i][1] <= stat[j][1] && stat[i][2] <= stat[j][2])
+				v[j].push_back(i);
+		}
+	}
+
+	// sharks can eat maximum two sharks
+	int cnt = 0;
+	memset(d, -1, sizeof(d));
+	for (int i = 0; i < n; i++) {
+		memset(vis, false, sizeof(vis));
+		if (dfs(i)) cnt++;
+		memset(vis, false, sizeof(vis));
+		if (dfs(i)) cnt++;
+	}
+
+	// output;
+	// maximum independent set is equal to maximum matching in bipartite graph
+	cout << n - cnt << "\n";
+
+	return 0;
+}
