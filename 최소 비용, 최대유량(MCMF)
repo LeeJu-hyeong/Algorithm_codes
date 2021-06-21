@@ -1,0 +1,114 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int INF = 987654321;
+
+int n, m;
+int A[101], B[101], C[101][101];
+void input();
+
+vector<int> v[203];
+int maxFlow[203][203], nowFlow[203][203];
+int dist[203][203];
+int S = 0, E = 201;
+
+int cvt(int idx) {
+	return idx + 100;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	//freopen("input.txt", "r", stdin);
+
+	input();
+
+	for (int i = 1; i <= m; i++) {
+		v[S].push_back(i);
+		v[i].push_back(S);
+
+		maxFlow[S][i] = B[i];
+		dist[S][i] = 0;
+		dist[i][S] = 0;
+	}
+
+	for (int i = 1; i <= n; i++) {
+		v[cvt(i)].push_back(E);
+		v[E].push_back(cvt(i));
+
+		maxFlow[cvt(i)][E] = A[i];
+		dist[cvt(i)][E] = 0;
+		dist[E][cvt(i)] = 0;
+	}
+
+	for (int i = 1; i <= m; i++) {
+		for (int j = 1; j <= n; j++) {
+			v[i].push_back(cvt(j));
+			v[cvt(j)].push_back(i);
+
+			maxFlow[i][cvt(j)] = INF;
+			dist[i][cvt(j)] = C[i][j];
+			dist[cvt(j)][i] = -C[i][j];
+		}
+	}
+
+	int ans = 0;
+
+	while (1) {
+		int d[203]; memset(d, -1, sizeof(d));
+		int dis[203]; fill(dis, dis + 203, INF);
+		bool inQ[203]; memset(inQ, false, sizeof(inQ));
+
+		queue<int> q;
+		q.push(S);
+		dis[S] = 0;
+		inQ[S] = true;
+
+		while (!q.empty()) {
+			int now = q.front();
+			q.pop();
+			inQ[now] = false;
+
+			for (int next : v[now]) {
+				if (maxFlow[now][next] - nowFlow[now][next] > 0 && dis[next] > dis[now] + dist[now][next]) {
+					dis[next] = dis[now] + dist[now][next];
+					d[next] = now;
+
+					if (!inQ[next]) {
+						inQ[next] = true;
+						q.push(next);
+					}
+
+				}
+			}
+		}
+		if (d[E] == -1) break;
+
+		int flow = INF;
+		for (int i = E; i != S; i = d[i])
+			flow = min(flow, maxFlow[d[i]][i] - nowFlow[d[i]][i]);
+
+		for (int i = E; i != S; i = d[i]) {
+			ans += flow * dist[d[i]][i];
+			nowFlow[d[i]][i] += flow;
+			nowFlow[i][d[i]] -= flow;
+		}
+	}
+
+	cout << ans;
+
+	return 0;
+}
+
+void input() {
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++) cin >> A[i];
+	for (int i = 1; i <= m; i++) cin >> B[i];
+	for (int i = 1; i <= m; i++) {
+		for (int j = 1; j <= n; j++)
+			cin >> C[i][j];
+	}
+	memset(maxFlow, 0, sizeof(maxFlow));
+	memset(nowFlow, 0, sizeof(nowFlow));
+	memset(dist, 0, sizeof(dist));
+}
