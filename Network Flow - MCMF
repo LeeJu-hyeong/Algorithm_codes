@@ -1,0 +1,87 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+using namespace std;
+const int SIZE = 805;
+const int INF = 987654321;
+
+int n, m;
+
+vector<int> v[SIZE];
+int S = 0, E = 801;
+int maxFlow[SIZE][SIZE], nowFlow[SIZE][SIZE];
+int dis[SIZE][SIZE];
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	//freopen("input.txt", "r", stdin);
+
+	cin >> n >> m;
+	for (int i = 1; i <= n; i++) {
+		int x; cin >> x;
+
+		v[S].push_back(i);
+		v[i].push_back(S);
+		maxFlow[S][i] = 1;
+
+		while (x--) {
+			int a, b; cin >> a >> b;
+			v[i].push_back(a + 400);
+			v[a + 400].push_back(i);
+
+			dis[i][a + 400] = -b;
+			dis[a + 400][i] = b;
+			maxFlow[i][a + 400] = 1;
+		}
+	}
+	for (int i = 1; i <= m; i++) {
+		v[i + 400].push_back(E);
+		v[E].push_back(i + 400);
+		maxFlow[i + 400][E] = 1;
+	}
+
+	int work_cnt = 0, sal = 0;
+	while (1) {
+		int d[SIZE]; fill(d, d + SIZE, INF);
+		int trace[SIZE]; memset(trace, -1, sizeof(trace));
+		bool inQ[SIZE]; memset(inQ, false, sizeof(inQ));
+
+		queue<int> q;
+		q.push(S);
+		d[S] = 0;
+		inQ[S] = true;
+		while (!q.empty()) {
+			int now = q.front();
+			inQ[now] = false;
+			q.pop();
+
+			for (int next : v[now]) {
+				if (maxFlow[now][next] - nowFlow[now][next] > 0 && d[next] > d[now] + dis[now][next]) {
+					trace[next] = now;
+					d[next] = d[now] + dis[now][next];
+					if (!inQ[next]) {
+						q.push(next);
+						inQ[next] = true;
+					}
+				}
+			}
+		}
+		if (trace[E] == -1) break;
+
+		int flow = INF;
+		for (int i = E; i != S; i = trace[i])
+			flow = min(flow, maxFlow[trace[i]][i] - nowFlow[trace[i]][i]);
+
+		for (int i = E; i != S; i = trace[i]) {
+			sal -= flow * dis[trace[i]][i];
+			nowFlow[trace[i]][i] += flow;
+			nowFlow[i][trace[i]] -= flow;
+		}
+
+		work_cnt++;
+	}
+
+	cout << work_cnt << "\n" << sal;
+
+	return 0;
+}
