@@ -1,0 +1,62 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <bits/stdc++.h>
+#define M(a, b) memset(a, b, sizeof(a))
+using namespace std;
+const int SIZE = 2005;
+
+int n, m;
+char c[SIZE];
+void input();
+
+vector<int> v[SIZE];
+
+int d[SIZE];
+bool vis[SIZE];
+bool bipartite_matching(int now) {
+	if (vis[now]) return false;
+	vis[now] = true;
+
+	for (int next : v[now]) {
+		if (d[next] == -1 || bipartite_matching(d[next])) {
+			d[next] = now;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int main() {
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL); cout.tie(NULL);
+	//freopen("input.txt", "r", stdin);
+
+	input();
+
+	int cnt = 0; // maximum independent set
+	for (int i = 1; i <= n; i++) {
+		M(vis, false);
+		if (c[i] == 'c') {
+			if (bipartite_matching(i)) cnt++;
+		}
+	}
+
+	cout << n - cnt;
+
+	return 0;
+}
+
+void input() {
+	cin >> n >> m;
+	M(d, -1);
+	for (int i = 1; i <= n; i++) {
+		int x; char y; cin >> x >> y;
+		c[x] = y;
+	}
+	while (m--) {
+		int x, y; cin >> x >> y;
+		if (c[x] == 's') swap(x, y);
+
+		v[x].push_back(y);
+	}
+}
